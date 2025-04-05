@@ -1,0 +1,131 @@
+password=tradala
+username=bilal
+DATABASE=mongodb+srv://bilal:tradala@tradala.oidf32s.mongodb.net/
+
+
+
+
+## main.py
+from fastapi import FastAPI
+from app.routes import user_route
+
+app = FastAPI()
+
+app.include_router(user_route.router, prefix="/api/users", tags=["Users"])
+
+
+## app/config/db_config.py
+from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.database import Database
+import os
+
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+DB_NAME = "fastapi_auth"
+
+client = AsyncIOMotorClient(MONGO_URI)
+database: Database = client[DB_NAME]
+
+
+## app/validations/user_validations.py
+from pydantic import BaseModel, EmailStr
+
+class UserRegister(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+## app/models/user_model.py
+from typing import Optional
+
+def user_helper(user) -> dict:
+    return {
+        "id": str(user.get("_id")),
+        "email": user.get("email")
+    }
+
+
+## app/services/user_service.py
+from app.config.db_config import database
+from app.models.user_model import user_helper
+from passlib.context import CryptContext
+from bson import ObjectId
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+collection = database.get_collection("users")
+
+async def get_user_by_email(email: str):
+    user = await collection.find_one({"email": email})
+    return user_helper(user) if user else None
+
+async def create_user(email: str, password: str):
+    hashed_pw = pwd_context.hash(password)
+    user = {"email": email, "password": hashed_pw}
+    result = await collection.insert_one(user)
+    user["_id"] = result.inserted_id
+    return user_helper(user)
+
+async def verify_password(plain_pw, hashed_pw):
+    return pwd_context.verify(plain_pw, hashed_pw)
+
+
+## app/controllers/user_controller.py
+from app.services import user_service
+from app.utils.jwt_util import create_jwt_token
+
+async def register_user(email: str, password: str):
+    user_exists = await user_service.get_user_by_email(email)
+    if user_exists:
+        return None
+    user = await user_service.create_user(email, password)
+    return user
+
+async def login_user(email: str, password: str):
+    user = await user_service.get_user_by_email(email)
+    if not user:
+        return None
+    db_user = await user_service.collection.find_one({"email": email})
+    if not await user_service.verify_password(password, db_user["password"]):
+        return None
+    token = create_jwt_token(user["id"])
+    return {"access_token": token, "token_type": "bearer"}
+
+
+## app/utils/jwt_util.py
+from datetime import datetime, timedelta
+import jwt
+import os
+
+SECRET_KEY = os.getenv("SECRET_KEY", "secret")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+def create_jwt_token(user_id: str):
+    to_encode = {"sub": user_id, "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)}
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+## app/routes/user_route.py
+from fastapi import APIRouter, HTTPException
+from app.validations.user_validations import UserRegister, UserLogin
+from app.controllers import user_controller
+
+router = APIRouter()
+
+@router.post("/register")
+async def register(payload: UserRegister):
+    user = await user_controller.register_user(payload.email, payload.password)
+    if not user:
+        raise HTTPException(status_code=400, detail="User already exists")
+    return user
+
+@router.post("/login")
+async def login(payload: UserLogin):
+    auth_data = await user_controller.login_user(payload.email, payload.password)
+    if not auth_data:
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    return auth_data
