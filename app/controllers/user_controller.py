@@ -1,11 +1,12 @@
 from app.services import user_service
 from app.utils.jwt_util import create_jwt_token
+from app.services.user_service import get_user_by_email
 
-async def register_user(email: str, password: str):
-    user_exists = await user_service.get_user_by_email(email)
-    if user_exists:
+async def register_user(first_name: str, last_name: str, email: str, password: str):
+    existing_user = await get_user_by_email(email)
+    if existing_user:
         return None
-    user = await user_service.create_user(email, password)
+    user = await user_service.create_user(first_name, last_name, email, password)
     return user
 
 async def login_user(email: str, password: str):
