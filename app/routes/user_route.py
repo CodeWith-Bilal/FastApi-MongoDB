@@ -6,7 +6,12 @@ router = APIRouter()
 
 @router.post("/register")
 async def register(payload: UserRegister):
-    user = await user_controller.register_user(payload.email, payload.password)
+    user = await user_controller.register_user(
+        payload.first_name,
+        payload.last_name,
+        payload.email,
+        payload.password
+    )
     if not user:
         raise HTTPException(status_code=400, detail="User already exists")
     return user
