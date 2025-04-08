@@ -17,11 +17,8 @@ async def create_user(first_name: str, last_name: str, email: str, password: str
         "first_name": first_name,
         "last_name": last_name,
         "email": email,
-        "password": hashed_pw
+        "password": hashed_pw,
     }
     result = await collection.insert_one(user)
     user["_id"] = result.inserted_id
     return user_helper(user)
-
-async def verify_password(plain_pw, hashed_pw):
-    return pwd_context.verify(plain_pw, hashed_pw)
