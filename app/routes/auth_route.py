@@ -6,15 +6,15 @@ router = APIRouter()
 
 @router.post("/register")
 async def register(payload: UserRegister):
-    user = await auth_controller.register_user(
+    auth_data = await auth_controller.register_user(
         payload.first_name,
         payload.last_name,
         payload.email,
         payload.password,
     )
-    if not user:
+    if not auth_data:
         raise HTTPException(status_code=400, detail="User already exists")
-    return user
+    return auth_data
 
 @router.post("/login")
 async def login(payload: UserLogin):
