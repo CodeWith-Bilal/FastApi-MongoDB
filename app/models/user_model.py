@@ -32,7 +32,7 @@ class UserUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
-    password: Optional[str] = None
+    password: Optional[str] = None  
 
 class UserResponse(UserBase):
     id: PydanticObjectId = Field(default_factory=PyObjectId, alias="_id")
@@ -43,11 +43,15 @@ class UserResponse(UserBase):
         json_encoders={ObjectId: str}
     )
 
+class PasswordUpdate(BaseModel):
+    old_password: str = Field(..., min_length=6)
+    new_password: str = Field(..., min_length=6)
+
 def user_helper(user) -> dict:
     return {
         "_id": str(user["_id"]),
         "first_name": user["first_name"],
         "last_name": user["last_name"],
         "email": user["email"],
-        "password": user["password"]
+        "password": user["password"]  
     }

@@ -52,3 +52,23 @@ async def delete_user(user_id: str, current_user_email: str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     return {"message": "User deleted successfully"}
+
+async def change_password(email: str, old_password: str, new_password: str):
+    user = await get_user_by_email(email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not pwd_context.verify(old_password, user["password"]):
+        raise HTTPException(status_code=400, detail="Old password is incorrect")
+
+    hashed_new_pw = pwd_context.hash(new_password)
+    result = await collection.update_one(
+        {"email": email},
+        {"$set": {"password": hashed_new_pw}}
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(status_code=500, detail="Password update failed")
+
+    return {"message": "Password updated successfully"}
+

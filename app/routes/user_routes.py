@@ -32,3 +32,13 @@ async def get_current_user_profile(request: Request):
     "Get current user profile"
     current_user = request.state.user
     return current_user
+
+@router.put("/change-password", status_code=status.HTTP_200_OK)
+async def change_password(password_data: PasswordUpdate, request: Request):
+    "Change password for the currently authenticated user"
+    current_user = request.state.user
+    return await user_controller.change_password(
+        email=current_user["email"],
+        old_password=password_data.old_password,
+        new_password=password_data.new_password
+    )

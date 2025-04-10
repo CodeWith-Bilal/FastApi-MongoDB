@@ -44,3 +44,5 @@ async def get_user_by_email(email: str):
             detail="User not found"
         )
     return user
+async def change_password(email: str, old_password: str, new_password: str):
+    return await user_service.change_password(email, old_password, new_password)
