@@ -15,7 +15,21 @@ async def create_user(user: UserCreate):
         first_name=user.first_name,
         last_name=user.last_name,
         email=user.email,
-        password=user.password
+        password=user.password,
+        skills=user.skills,
+        description=user.description,
+        address=user.address,
+        phone_number=user.phone_number,
+        gender=user.gender,
+        date_of_birth=user.date_of_birth,
+        title=user.title,
+        company=user.company,
+        employment_history=user.employment_history,
+        education_info=user.education_info,
+        portfolio=user.portfolio,
+        certificates_and_licenses=user.certificates_and_licenses,
+        languages=user.languages,
+        job_preferences=user.job_preferences
     )
 
 async def get_all_users():
@@ -44,5 +58,3 @@ async def get_user_by_email(email: str):
             detail="User not found"
         )
     return user
-async def change_password(email: str, old_password: str, new_password: str):
-    return await user_service.change_password(email, old_password, new_password)
