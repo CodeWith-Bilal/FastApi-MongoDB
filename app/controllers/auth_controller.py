@@ -16,8 +16,8 @@ async def register_user(first_name: str, last_name: str, email: str, password: s
         last_name=last_name,
         email=email,
         password=password,
-        role="user",  # Add default role
-        active=True   # Ensure user is active by default
+        role="user", 
+        active=True  
     )
     return {"user": user} 
 

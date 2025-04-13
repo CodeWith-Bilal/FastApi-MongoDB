@@ -20,8 +20,8 @@ async def create_user(first_name: str, last_name: str, email: str, password: str
         "last_name": last_name,
         "email": email,
         "password": hashed_pw,
-        "role": kwargs.get("role", "user"),  # Default to "user" if not specified
-        "active": kwargs.get("active", True),  # Default to True (active)
+        "role": kwargs.get("role", "user"),  
+        "active": kwargs.get("active", True),  
         **kwargs
     }
     user["_id"] = (await collection.insert_one(user)).inserted_id
