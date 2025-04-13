@@ -37,13 +37,13 @@ class UserBase(BaseModel):
     languages: Optional[List[Dict[str, Optional[str]]]] = None
     job_preferences: Optional[Dict[str, Optional[str]]] = None
     role: Optional[str] = "user"
-    active: Optional[bool] = True  # Default to True (active)
+    active: Optional[bool] = True  
     is_blocked: Optional[bool] = False
 
 
 class UserCreate(UserBase):
     password: str
-    active: Optional[bool] = True  # Default to True (active)
+    active: Optional[bool] = True 
 
 class UserUpdate(BaseModel):
     first_name: Optional[str] = None
@@ -72,5 +72,5 @@ def user_helper(user) -> dict:
         "_id": str(user["_id"]),
         **{k: user.get(k) for k in UserBase.__fields__.keys()},
         "password": user.get("password"),
-        "is_blocked": user.get("is_blocked", False)  # Ensure is_blocked is returned as False if not set
+        "is_blocked": user.get("is_blocked", False)  
     }
