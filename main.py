@@ -19,8 +19,8 @@ app.add_middleware(
 app.middleware("http")(auth_middleware)
 
 app.include_router(auth_route.router, prefix="/auth", tags=["Authentication"])
-app.include_router(user_routes.router)
-app.include_router(job_routes.router) 
+app.include_router(user_routes.router, prefix="/users", tags=["Users"])
+app.include_router(job_routes.router, prefix="/jobs", tags=["Jobs"]) 
 
 @app.get("/")
 async def root():
