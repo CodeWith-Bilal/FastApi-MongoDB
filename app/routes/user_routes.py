@@ -11,11 +11,6 @@ async def create_user(request: Request):
 async def get_all_users(request: Request):
     return await user_controller.get_all_users(request)
 
-@router.put("/change-password")
-async def change_password(request: Request):
-    return await user_controller.change_password(request)
-
-
 @router.put("/{user_id}")
 async def update_user(user_id: str, request: Request):
     return await user_controller.update_user(user_id, request)

@@ -1,13 +1,13 @@
-from fastapi import HTTPException, status, Request
+from fastapi import HTTPException, Request
 from app.services import user_service
-from app.models.user_model import UserCreate, UserUpdate , PasswordChange
+from app.models import user_model 
 from app.validations.admin_validations import is_admin
 
 async def create_user(request: Request):
     is_admin(request.state.user)
 
     data = await request.json()
-    user = UserCreate(**data)
+    user = user_model.UserCreate(**data)
 
     existing_user = await user_service.get_user_by_email(user.email)
     if existing_user:
@@ -34,30 +34,9 @@ async def update_user(user_id: str, request: Request):
         raise HTTPException(status_code=404, detail="User not found")
 
     data = await request.json()
-    user_update = UserUpdate(**data)
+    user_update = user_model.UserUpdate(**data)
 
     return await user_service.update_user(user_id, user_update.dict(exclude_unset=True))
-
-async def change_password(request: Request):
-    user = request.state.user
-    data = await request.json()
-    password_data = PasswordChange(**data)
-
-    if password_data.new_password != password_data.confirm_password:
-        raise HTTPException(status_code=400, detail="New password and confirm password do not match")
-
-    db_user = await user_service.get_user_by_id(str(user["_id"]))
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    from app.services.user_service import pwd_context
-    if not pwd_context.verify(password_data.current_password, db_user["password"]):
-        raise HTTPException(status_code=403, detail="Incorrect current password")
-
-    hashed_pw = pwd_context.hash(password_data.new_password)
-    await user_service.update_user(str(user["_id"]), {"password": hashed_pw})
-    return {"message": "Password changed successfully"}
-
 
 async def delete_user(user_id: str, request: Request):
     is_admin(request.state.user)
