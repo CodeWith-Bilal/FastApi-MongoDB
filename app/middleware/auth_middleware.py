@@ -7,7 +7,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 async def auth_middleware(request: Request, call_next):
-    if request.url.path in ["/auth/login", "/auth/register", "/docs", "/redoc", "/openapi.json", "/"]:
+    if request.url.path in [
+        "/auth/forgot-password",
+        "/auth/reset-password",
+        "/auth/verify-otp",
+        "/auth/login",
+        "/auth/register",
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+        "/"
+    ]:
         return await call_next(request)
     
     auth_header = request.headers.get("Authorization")

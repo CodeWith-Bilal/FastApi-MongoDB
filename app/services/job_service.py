@@ -1,5 +1,5 @@
 from app.config.db_config import database
-from app.models.job_model import JobCreate, JobUpdate
+from app.models import job_model
 from bson import ObjectId
 from datetime import datetime
 import logging
@@ -32,7 +32,7 @@ def serialize_job(job) -> dict:
     }
 
 async def create_job(data: dict, user_id: str):
-    job = JobCreate(**data)
+    job = job_model.JobCreate(**data)
     job_data = job.model_dump(exclude_unset=True)
     job_data.update({
         "_id": ObjectId(),
@@ -44,7 +44,7 @@ async def create_job(data: dict, user_id: str):
     return serialize_job(job_data)
 
 async def update_job(job_id: str, data: dict):
-    update_model = JobUpdate(**data)
+    update_model = job_model.JobUpdate(**data)
     update_dict = update_model.model_dump(exclude_unset=True)
     await jobs.update_one({"_id": ObjectId(job_id)}, {"$set": update_dict})
     updated = await jobs.find_one({"_id": ObjectId(job_id)})

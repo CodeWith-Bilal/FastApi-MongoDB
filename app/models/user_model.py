@@ -38,6 +38,8 @@ class UserBase(BaseModel):
     job_preferences: Optional[Dict[str, Optional[str]]] = None
     role: Optional[str] = "user"
     active: Optional[bool] = True 
+    otp: Optional[str] = None
+    otp_expiry: Optional[datetime] = None
     is_blocked: Optional[bool] = False
 
 
@@ -75,7 +77,8 @@ class UserResponse(UserBase):
 def user_helper(user) -> dict:
     return {
         "_id": str(user["_id"]),
-        **{k: user.get(k) for k in UserBase.__fields__.keys()},
+        **{k: user.get(k) for k in UserBase.__fields__.keys() if k not in ["otp", "otp_expiry", "otp_verified", "is_blocked", "password"]},
         "password": user.get("password"),
         "is_blocked": user.get("is_blocked", False) 
     }
+    
