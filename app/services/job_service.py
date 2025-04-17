@@ -1,6 +1,7 @@
 from app.config.db_config import database
 from app.models import job_model
 from bson import ObjectId
+from app.services import job_seeker_service
 from datetime import datetime
 import logging
 
@@ -55,7 +56,11 @@ async def get_all_jobs():
 
 async def get_job_by_id(job_id: str):
     job = await jobs.find_one({"_id": ObjectId(job_id)})
-    return serialize_job(job) if job else None
+    if job:
+        job = serialize_job(job)
+        job['application_count'] = await job_seeker_service.get_application_count(job_id)
+        return job
+    return None
 
 async def get_jobs_by_user(user_id: str):
     return [serialize_job(job) async for job in jobs.find({"created_by": user_id})]

@@ -28,3 +28,10 @@ async def update_job(job_id: str, request: Request):
 @router.delete("/{job_id}")
 async def delete_job(job_id: str, request: Request):
     return await job_controller.delete_user_job(job_id, request.state.user["_id"])
+
+@router.get("/{job_id}/applications")
+async def get_job_applications(job_id: str, request: Request):
+    return await job_controller.get_job_applications(
+        job_id,
+        request.state.user["_id"]
+    )
