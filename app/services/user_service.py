@@ -11,8 +11,7 @@ async def get_user_by_email(email: str):
     return user_helper(user) if user else None
 
 async def get_user_by_id(user_id: str):
-    user = await user_collection.find_one({"_id": ObjectId(user_id)})
-    return user_helper(user) if user else None
+    return await user_collection.find_one({"_id": ObjectId(user_id)})
 
 async def get_all_users():
     return [user_helper(user) async for user in user_collection.find()]

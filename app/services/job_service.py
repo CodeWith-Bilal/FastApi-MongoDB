@@ -2,6 +2,7 @@ from app.config.db_config import database
 from app.models import job_model
 from bson import ObjectId
 from app.services import job_seeker_service
+from app.validations.admin_validations import is_admin
 from datetime import datetime
 import logging
 
@@ -39,7 +40,7 @@ async def create_job(data: dict, user_id: str):
         "_id": ObjectId(),
         "created_by": user_id,
         "created_at": datetime.utcnow(),
-        "status": "open",
+        "status": "active"  # Ensure default status is set
     })
     await jobs.insert_one(job_data)
     return serialize_job(job_data)
@@ -51,12 +52,25 @@ async def update_job(job_id: str, data: dict):
     updated = await jobs.find_one({"_id": ObjectId(job_id)})
     return serialize_job(updated) if updated else None
 
-async def get_all_jobs():
-    return [serialize_job(job) async for job in jobs.find()]
+async def get_all_jobs(user_id: str = None):
+    query = {"status": "active"}  # Only show active jobs by default
+    if user_id:
+        # Show all jobs (including blocked) to job owner
+        query = {"$or": [
+            {"status": "active"},
+            {"created_by": user_id}
+        ]}
+    return [serialize_job(job) async for job in jobs.find(query)]
 
-async def get_job_by_id(job_id: str):
+async def get_job_by_id(job_id: str, user_id: str = None, admin_check: bool = False):
     job = await jobs.find_one({"_id": ObjectId(job_id)})
     if job:
+        # Skip status check if admin is performing unblock operation
+        if not admin_check and job["status"] == "blocked":
+            if not user_id:
+                return None
+            if user_id != job["created_by"] and not await is_admin(user_id):
+                return None
         job = serialize_job(job)
         job['application_count'] = await job_seeker_service.get_application_count(job_id)
         return job

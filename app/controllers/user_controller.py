@@ -18,36 +18,18 @@ async def create_user(request: Request):
     return await user_service.create_user(**user.dict())
 
 async def get_all_users(request: Request):
-    is_admin(request.state.user)
+    if not await is_admin(request.state.user["_id"]):
+        raise HTTPException(status_code=403, detail="Only admins can view all users")
     return await user_service.get_all_users()
 
-async def update_user(user_id: str, request: Request):
-    current_user = request.state.user
-
-    try:
-        is_admin(current_user)
-    except HTTPException:
-        if str(current_user["_id"]) != user_id:
-            raise HTTPException(status_code=403, detail="You can only update your own profile")
-
-    if not await user_service.get_user_by_id(user_id):
-        raise HTTPException(status_code=404, detail="User not found")
-
-    data = await request.json()
-    user_update = user_model.UserUpdate(**data)
-
-    return await user_service.update_user(user_id, user_update.dict(exclude_unset=True))
-
 async def delete_user(user_id: str, request: Request):
-    is_admin(request.state.user)
+    if not await is_admin(request.state.user["_id"]):
+        raise HTTPException(status_code=403, detail="Only admins can delete users")
     return await user_service.delete_user(user_id)
 
-async def block_user(user_id: str, request: Request):
-    is_admin(request.state.user)
-    return await user_service.block_user(user_id)
-
 async def deactivate_user(user_id: str, request: Request):
-    is_admin(request.state.user)
+    if not await is_admin(request.state.user["_id"]):
+        raise HTTPException(status_code=403, detail="Only admins can deactivate users")
     return await user_service.deactivate_user(user_id)
 
 async def get_user_by_email(email: str):
