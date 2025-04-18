@@ -27,3 +27,15 @@ class JobFavorite(BaseModel):
 class JobFavoriteResponse(JobFavorite):
     id: str
     owner_id: str  # Add this field to track who favorited the job
+
+
+class JobReport(BaseModel):
+    job_id: str
+    reporter_id: str
+    reason: str
+    status: str = "pending"  # pending, reviewed, resolved
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    admin_notes: Optional[str] = None
+
+class JobReportResponse(JobReport):
+    id: str

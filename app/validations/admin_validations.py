@@ -1,8 +1,5 @@
-from fastapi import HTTPException, status
+from app.services import user_service
 
-def is_admin(current_user: dict):
-    if current_user.get("role") != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admin can perform this action"
-        )
+async def is_admin(user_id: str) -> bool:
+    user = await user_service.get_user_by_id(user_id)
+    return user and user.get("role") == "admin"
