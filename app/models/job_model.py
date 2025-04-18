@@ -60,7 +60,11 @@ class JobResponse(JobBase):
     id: str
     created_by: str
     created_at: datetime
-    status: str = Field("open", description="Job status (open, in_progress, completed)")
+    status: str = Field(
+        "open",
+        pattern="^(open|in_progress|completed|closed)$",
+        description="Job status (open, in_progress, completed, closed)"
+    )
     
     class Config:
         json_encoders = {ObjectId: str}
